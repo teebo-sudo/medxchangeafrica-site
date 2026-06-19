@@ -1,0 +1,98 @@
+/* ==========================================================================
+   MedXchange Africa — shared styles
+   Ported from the Claude Design handoff into a standalone, runnable site.
+   Most visual styling lives inline on the elements (faithful to the mockup);
+   this file adds: base reset, keyframes, responsiveness, the mobile menu,
+   accessibility (focus) and reduced-motion fallbacks.
+   ========================================================================== */
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:#F6F1E7;color:#1C1A17;
+  font-family:"General Sans","Geist",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;
+}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+::selection{background:#C0552F;color:#F6F1E7}
+
+@keyframes mxMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mxScrollHint{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(7px);opacity:1}}
+
+/* images that replace the mockup's placeholder panels */
+.mx-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mx-figure{position:relative;overflow:hidden;border-radius:2px}
+.mx-figcap{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;
+  font-family:"General Sans","Geist",system-ui,sans-serif;font-size:12px;line-height:1.45;
+  letter-spacing:.02em;color:#F1EADB}
+.mx-figscrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to top,rgba(11,31,28,.55) 0%,rgba(11,31,28,0) 42%)}
+
+/* accessibility: visible focus */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid #C0552F;outline-offset:3px;border-radius:2px}
+.mx-skip{position:absolute;left:-9999px;top:0;z-index:200;background:#0E3A34;color:#F1EADB;
+  padding:12px 18px;border-radius:2px}
+.mx-skip:focus{left:12px;top:12px}
+
+/* ---------- subpage nav (solid from the top — no dark hero behind it) ---------- */
+.mx-subpage{padding-top:0}
+.mx-subpage #mxNav{background:rgba(251,248,241,.92) !important;border-bottom:1px solid #E2D8C5 !important;
+  backdrop-filter:saturate(1.3) blur(12px);-webkit-backdrop-filter:saturate(1.3) blur(12px);
+  padding-top:14px !important;padding-bottom:14px !important}
+.mx-subpage #mxNav [data-navtext]{color:#1C1A17 !important}
+.mx-subpage #mxNav .mx-applybtn{color:#F6F1E7 !important}
+
+/* ---------- form fields (apply / contact) ---------- */
+.mxField{width:100%;font-family:inherit;font-size:15px;color:#1C1A17;background:#FBF8F1;border:1px solid #E2D8C5;
+  border-radius:2px;padding:13px 14px;transition:border-color .25s,box-shadow .25s;-webkit-appearance:none;appearance:none}
+.mxField:focus{outline:none;border-color:#C0552F;box-shadow:0 0 0 3px rgba(192,85,47,.14)}
+.mxField::placeholder{color:#9b9384}
+.mxLabel{display:block;font-size:13px;font-weight:500;color:#1C1A17;margin-bottom:7px}
+.mxHint{font-size:12px;color:#6B6256;margin-top:6px}
+select.mxField{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236B6256' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+/* ---------- mobile menu ---------- */
+.mx-burger{display:none;background:none;border:0;cursor:pointer;font-size:22px;line-height:1;
+  padding:6px 4px;color:inherit}
+.mx-mobile{position:fixed;inset:0;z-index:80;background:#0B1F1C;
+  transform:translateY(-100%);transition:transform .55s cubic-bezier(.7,0,.2,1);
+  display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 8vw}
+.mx-mobile.open{transform:translateY(0)}
+.mx-mobile a{font-family:"Fraunces",serif;font-weight:400;font-size:clamp(28px,8vw,46px);
+  color:#F1EADB;padding:10px 0;border-bottom:1px solid #1E3A34}
+.mx-mobile a:last-child{border-bottom:0}
+.mx-mobile .mx-mobile-close{position:absolute;top:22px;right:6vw;font-family:"General Sans",sans-serif;
+  font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#9FAA9E;border-bottom:0;padding:0}
+
+/* ---------- responsive ---------- */
+@media (max-width:920px){
+  .mx-burger{display:inline-block}
+  .mx-navlinks{display:none !important}
+  .mx-lang{display:none !important}
+}
+@media (max-width:860px){
+  .mx-2col{grid-template-columns:1fr !important;gap:40px !important}
+  .mx-2col .mx-order-img{order:-1}
+  .mx-stats{grid-template-columns:1fr 1fr !important}
+  .mx-stats > div{border-right:0 !important;padding-left:0 !important;
+    border-top:1px solid #E2D8C5;padding-top:26px !important}
+  .mx-test{grid-template-columns:1fr !important}
+  .mx-foot{grid-template-columns:1fr !important;gap:34px !important}
+  .mx-partners{justify-content:flex-start !important;gap:10px 16px !important}
+  .mx-cta-h2{font-size:clamp(34px,11vw,60px) !important}
+}
+@media (max-width:560px){
+  .mx-applybtn{display:none !important}
+  .mx-hide-sm{display:none !important}
+  /* stack multi-column form field rows (apply/contact) on small screens */
+  form [style*="grid-template-columns:"]{grid-template-columns:1fr !important}
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  [data-marquee]{animation:none !important}
+  .mx-scrollhint{animation:none !important}
+}
