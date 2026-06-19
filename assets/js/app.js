@@ -31,6 +31,18 @@
     });
   }
 
+  /* ---- mark the current page's nav link (underline + aria-current) ---- */
+  function setupActiveNav() {
+    var here = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+    document.querySelectorAll("[data-navlink]").forEach(function (a) {
+      var target = (a.getAttribute("href") || "").split("/").pop().split("#")[0].toLowerCase();
+      if (target && target === here) {
+        a.style.setProperty("background-size", "100% 1px");
+        a.setAttribute("aria-current", "page");
+      }
+    });
+  }
+
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
@@ -409,6 +421,7 @@
     try { initHover(); } catch (e) {}
     try { initEmail(); } catch (e) {}
     try { setupLangSwitch(); } catch (e) {}
+    try { setupActiveNav(); } catch (e) {}
     try { initNav(); } catch (e) {}
     try { initMobileMenu(); } catch (e) {}
     try { initReveal(); } catch (e) {}
