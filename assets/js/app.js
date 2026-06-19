@@ -36,17 +36,28 @@
     else document.addEventListener("DOMContentLoaded", fn);
   }
 
-  /* ---- style-hover shim (the design runtime applied these) ---- */
+  /* ---- style-hover shim (the design runtime applied these) ----
+     Applies ONLY the hovered properties and restores their previous values on
+     leave — so it never clobbers inline styles set at runtime (display from the
+     nav show/hide, color from scroll, transform from magnetic buttons). */
   function initHover() {
     if (!window.matchMedia("(hover:hover)").matches) return; // skip on touch — avoids sticky hover
     document.querySelectorAll("[style-hover]").forEach(function (el) {
-      var base = el.getAttribute("style") || "";
       var hov = el.getAttribute("style-hover") || "";
+      var decls = hov.split(";").map(function (s) { return s.trim(); }).filter(Boolean).map(function (d) {
+        var i = d.indexOf(":");
+        return [d.slice(0, i).trim(), d.slice(i + 1).trim()];
+      });
+      if (!decls.length) return;
       el.addEventListener("pointerenter", function () {
-        el.setAttribute("style", base + ";" + hov);
+        el._mxPrev = decls.map(function (d) { return [d[0], el.style.getPropertyValue(d[0])]; });
+        decls.forEach(function (d) { el.style.setProperty(d[0], d[1]); });
       });
       el.addEventListener("pointerleave", function () {
-        el.setAttribute("style", base);
+        if (!el._mxPrev) return;
+        el._mxPrev.forEach(function (p) {
+          if (p[1]) el.style.setProperty(p[0], p[1]); else el.style.removeProperty(p[0]);
+        });
       });
     });
   }
