@@ -13,6 +13,24 @@
   var REDUCE_ALL = mql.matches;      // disable reveals/counters animation
   var FINE = window.matchMedia("(pointer:fine)").matches;
 
+  // react if the user changes their motion preference mid-session (pause/resume marquee)
+  if (mql.addEventListener) {
+    mql.addEventListener("change", function (e) {
+      document.querySelectorAll("[data-marquee]").forEach(function (m) {
+        m.style.animationPlayState = e.matches ? "paused" : "running";
+      });
+    });
+  }
+
+  /* ---- language switcher: mark the current language for assistive tech ---- */
+  function setupLangSwitch() {
+    var cur = (document.documentElement.lang || "en").slice(0, 2);
+    document.querySelectorAll("[data-lang]").forEach(function (el) {
+      if (el.getAttribute("data-lang") === cur) el.setAttribute("aria-current", "true");
+      else el.removeAttribute("aria-current");
+    });
+  }
+
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
@@ -20,6 +38,7 @@
 
   /* ---- style-hover shim (the design runtime applied these) ---- */
   function initHover() {
+    if (!window.matchMedia("(hover:hover)").matches) return; // skip on touch — avoids sticky hover
     document.querySelectorAll("[style-hover]").forEach(function (el) {
       var base = el.getAttribute("style") || "";
       var hov = el.getAttribute("style-hover") || "";
@@ -78,9 +97,19 @@
     var burger = document.getElementById("mxBurger");
     var menu = document.getElementById("mxMobile");
     if (!burger || !menu) return;
+    burger.setAttribute("aria-controls", "mxMobile");
+    var setClosedState = function (closed) {
+      burger.setAttribute("aria-expanded", closed ? "false" : "true");
+      if (closed) { menu.setAttribute("aria-hidden", "true"); try { menu.setAttribute("inert", ""); } catch (e) {} }
+      else { menu.removeAttribute("aria-hidden"); try { menu.removeAttribute("inert"); } catch (e) {} }
+    };
+    setClosedState(true);
     var toggle = function (open) {
       menu.classList.toggle("open", open);
       document.body.style.overflow = open ? "hidden" : "";
+      setClosedState(!open);
+      if (open) { var f = menu.querySelector("a,button"); if (f) f.focus(); }
+      else { burger.focus(); }
     };
     burger.addEventListener("click", function () { toggle(!menu.classList.contains("open")); });
     var close = document.getElementById("mxMobileClose");
@@ -88,12 +117,16 @@
     menu.querySelectorAll("a").forEach(function (a) {
       a.addEventListener("click", function () { toggle(false); });
     });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && menu.classList.contains("open")) toggle(false);
+    });
   }
 
   /* ---- reveal on scroll ---- */
   function initReveal() {
     var els = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
-    if (REDUCE_ALL) return;
+    // Never hide content if we cannot reliably reveal it (no IO support / reduced motion)
+    if (REDUCE_ALL || !("IntersectionObserver" in window)) return;
     els.forEach(function (el) {
       el.style.opacity = "0";
       el.style.transform = "translateY(24px)";
@@ -265,8 +298,10 @@
     };
     var proj = function (v) { return [cx + R * v[0], cy - R * v[1]]; };
     var quad = function (a, c, b, t) { var m = 1 - t; return [m * m * a[0] + 2 * m * t * c[0] + t * t * b[0], m * m * a[1] + 2 * m * t * c[1] + t * t * b[1]]; };
+    var visible = true, coarse = window.matchMedia("(pointer:coarse)").matches, _frame = 0;
     var t = 0, ry = -1.2;
     var draw = function () {
+      if (coarse && ((_frame++) & 1)) { if (!reduce && visible) requestAnimationFrame(draw); return; }
       t += 0.016; ry += 0.0015;
       mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
       var RYp = ry + mx * 0.6;
@@ -348,14 +383,21 @@
         ctx.fillStyle = "rgba(246,241,231,0.95)";
         ctx.beginPath(); ctx.arc(gp[0], gp[1], 1.4, 0, 7); ctx.fill();
       }
-      if (!reduce) requestAnimationFrame(draw);
+      if (!reduce && visible) requestAnimationFrame(draw);
     };
+    if (!reduce && "IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) {
+        var was = visible; visible = es[0].isIntersecting;
+        if (visible && !was) requestAnimationFrame(draw);
+      }, { threshold: 0 }).observe(cv);
+    }
     if (reduce) { ry = 0.2; draw(); } else { draw(); }
   }
 
   ready(function () {
     try { initHover(); } catch (e) {}
     try { initEmail(); } catch (e) {}
+    try { setupLangSwitch(); } catch (e) {}
     try { initNav(); } catch (e) {}
     try { initMobileMenu(); } catch (e) {}
     try { initReveal(); } catch (e) {}
