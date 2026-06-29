@@ -99,6 +99,9 @@ select.mxField{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www
 @media (max-width:860px){
   .mx-2col{grid-template-columns:1fr !important;gap:40px !important}
   .mx-2col .mx-order-img{order:-1}
+  /* a sticky aside (e.g. the Apply intro column) must not stay pinned once the
+     layout is stacked — otherwise it overlaps the content that follows it */
+  [style*="position:sticky"]{position:static !important;top:auto !important}
   .mx-stats{grid-template-columns:1fr 1fr !important}
   .mx-stats > div{border-right:0 !important;padding-left:0 !important;
     border-top:1px solid #E2D8C5;padding-top:26px !important}
@@ -111,11 +114,20 @@ select.mxField{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www
   /* drop desktop-only hard line breaks so headings wrap naturally on phones */
   br.mx-br-desk{display:none}
 }
+@media (max-width:860px){
+  /* "What's included" cards: 3-up is too cramped below tablet → 2-up */
+  .mx-incl{grid-template-columns:1fr 1fr !important}
+}
 @media (max-width:560px){
   .mx-applybtn{display:none !important}
   .mx-hide-sm{display:none !important}
   /* stack multi-column form field rows (apply/contact) on small screens */
   form [style*="grid-template-columns:"]{grid-template-columns:1fr !important}
+  /* "What's included" cards stack fully on phones */
+  .mx-incl{grid-template-columns:1fr !important}
+  /* stat rows (homepage + program costs) stack on phones so long labels don't cramp */
+  .mx-stats{grid-template-columns:1fr !important}
+  .mx-stats > div{border-right:0 !important;padding-left:0 !important}
 }
 
 /* ---------- reduced motion ---------- */
